@@ -3,202 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Safe Cinema - ကလေးများအတွက် ဘေးကင်းသော ရုပ်ရှင်ကြည့် App</title>
+    <title>Safe Cinema - ကလေးများအတွက် ဘေးကင်းသော ဒေါင်းလုဒ်ဆွဲသည့် App</title>
+    <!-- Tailwind CSS အတွက် CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons အတွက် FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pyidaungsu:wght@400;700&display=swap');
-        body { font-family: 'Pyidaungsu', sans-serif; }
-        .custom-loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
+        body { font-family: 'Pyidaungsu', sans-serif; background-color: #f8fafc; }
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2563eb;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 24px;
+            height: 24px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-blue-50 min-h-screen">
-
-    <div class="max-w-4xl mx-auto px-4 py-10">
-        <!-- Header -->
+<body>
+    <div class="max-w-3xl mx-auto px-4 py-12">
+        <!-- ခေါင်းစဉ်အပိုင်း -->
         <div class="text-center mb-10">
-            <div class="inline-flex items-center justify-center p-4 bg-white rounded-3xl shadow-sm mb-4">
-                <i class="fas fa-shield-alt text-green-500 text-4xl mr-3"></i>
-                <h1 class="text-3xl font-bold text-gray-800">Safe Cinema</h1>
+            <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">
+                <i class="fas fa-shield-alt text-white text-3xl"></i>
             </div>
-            <p class="text-gray-600 font-medium">ကြော်ငြာများကို ကျော်ဖြတ်ပြီး ကာတွန်းကားများကို ဘေးကင်းစွာ ရယူပါ</p>
+            <h1 class="text-3xl font-bold text-slate-900">Safe Cinema</h1>
+            <p class="text-slate-500 mt-2">ကလေးများအတွက် မသင့်တော်သော ကြော်ငြာများကို ကျော်ဖြတ်ပြီး Link များကို ရယူပါ</p>
         </div>
 
-        <!-- Search Form -->
-        <div class="bg-white p-6 rounded-3xl shadow-xl border border-blue-100 mb-8">
-            <div class="flex flex-col md:flex-row gap-3">
-                <div class="relative flex-grow">
-                    <i class="fas fa-link absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="movieUrl" 
-                           placeholder="https://www.homietv.com/movie/..." 
-                           class="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-400 outline-none transition-all">
-                </div>
-                <button onclick="extractLinks()" id="searchBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center min-w-[160px]">
-                    <span id="btnText"><i class="fas fa-magic mr-2"></i> Link ရှာမည်</span>
-                    <span id="btnLoading" class="hidden"><i class="fas fa-spinner animate-spin"></i></span>
+        <!-- Input Box -->
+        <div class="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 mb-8">
+            <div class="flex flex-col gap-4">
+                <input type="text" id="movieUrl" placeholder="HomieTV Link ကို ဤနေရာတွင် ထည့်ပါ..." 
+                       class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                <button onclick="extractLinks()" id="searchBtn" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95">
+                    <span id="btnText">Link ရှာဖွေမည်</span>
+                    <div id="btnLoader" class="loader hidden"></div>
                 </button>
             </div>
-            
-            <!-- Error Messaging Area -->
-            <div id="errorMsg" class="mt-4 p-4 bg-red-50 border border-red-100 rounded-2xl hidden flex items-start">
-                <i class="fas fa-exclamation-triangle text-red-500 mt-1 mr-3"></i>
-                <div class="flex-grow">
-                    <p class="text-red-600 font-bold text-sm">တစ်ခုခုမှားယွင်းနေပါသည်</p>
-                    <p id="errorText" class="text-red-500 text-xs mt-1"></p>
-                    <div id="debugSteps" class="mt-3 p-3 bg-white/50 rounded-xl text-[11px] text-gray-600 font-sans hidden">
-                        <p class="font-bold text-red-500 mb-1 underline">စစ်ဆေးရန် အချက်များ -</p>
-                        <ul class="list-disc ml-4 space-y-1">
-                            <li>Vercel ပေါ်မှာ "Deploy" အောင်မြင်စွာ လုပ်ပြီးပြီလား?</li>
-                            <li>Project ထဲမှာ <code>api/extract.js</code> ဖိုင် ရှိမရှိ စစ်ပါ။</li>
-                            <li><code>vercel.json</code> ထဲက Configuration တွေ မှန်ကန်ရဲ့လား?</li>
-                            <li>Server Error 404 ဖြစ်နေရင် <code>/api/extract</code> လမ်းကြောင်းကို ရှာမတွေ့တာ ဖြစ်ပါတယ်။</li>
-                        </ul>
-                    </div>
-                </div>
+            <div id="errorArea" class="mt-4 p-4 bg-red-50 text-red-600 text-sm rounded-2xl hidden flex items-center gap-2">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorText"></span>
             </div>
         </div>
 
-        <!-- Loading State -->
-        <div id="loading" class="hidden text-center py-20">
-            <div class="custom-loader mx-auto mb-4"></div>
-            <p class="text-gray-500 font-bold">Link များကို ရှာဖွေနေပါသည်...</p>
-        </div>
-
-        <!-- Results Area -->
-        <div id="results" class="hidden animate-in fade-in duration-500">
-            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-blue-100">
-                <div class="md:flex">
-                    <div class="md:w-1/3 bg-gray-900 p-8 flex flex-col items-center justify-center text-center relative overflow-hidden">
-                        <div class="absolute inset-0 bg-blue-600 opacity-10"></div>
-                        <i class="fas fa-film text-blue-500 text-6xl mb-4 opacity-50 relative z-10"></i>
-                        <h2 id="movieTitle" class="text-white font-bold text-xl leading-snug relative z-10">Movie Title</h2>
-                    </div>
-                    <div class="md:w-2/3 p-6 md:p-8">
-                        <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
-                            <i class="fas fa-check-circle text-green-500 mr-2"></i> ရရှိနိုင်သော Link များ
-                        </h3>
-                        <div id="linkContainer" class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                            <!-- Links will be injected here -->
-                        </div>
-                    </div>
+        <!-- ရလဒ်ပြသသည့်အပိုင်း -->
+        <div id="resultView" class="hidden">
+            <div class="bg-slate-900 rounded-3xl p-8 mb-6 text-center text-white shadow-2xl relative overflow-hidden">
+                <div class="absolute inset-0 bg-blue-600 opacity-10"></div>
+                <i class="fas fa-film text-blue-500 text-5xl mb-4 opacity-50 relative z-10"></i>
+                <h2 id="movieTitle" class="text-xl font-bold relative z-10">ရုပ်ရှင်အမည်</h2>
+            </div>
+            <div class="bg-white rounded-3xl shadow-lg p-6 border border-slate-100">
+                <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-check-circle text-green-500"></i> Download ရယူရန် Link များ
+                </h3>
+                <div id="linkGrid" class="grid grid-cols-1 gap-3">
+                    <!-- Link Card များ ဤနေရာတွင် ပေါ်လာမည် -->
                 </div>
             </div>
-        </div>
-
-        <!-- Instructions for Local Testing -->
-        <div id="deployHint" class="mt-8 p-6 bg-yellow-50 border border-yellow-100 rounded-3xl text-sm text-yellow-800 hidden">
-            <p class="font-bold mb-2"><i class="fas fa-info-circle mr-2"></i> Local တွင် စမ်းသပ်ခြင်း</p>
-            <p>သင်သည် ဤဖိုင်ကို Computer ပေါ်တွင် တိုက်ရိုက် (file://) ဖွင့်ထားသည်။ ဤ App သည် Vercel Server ပေါ်တွင် တင်ထားမှသာ Link များကို အောင်မြင်စွာ ရှာဖွေပေးနိုင်မည်ဖြစ်သည်။</p>
         </div>
     </div>
 
     <script>
-        // Check if running locally
-        if (window.location.protocol === 'file:') {
-            document.getElementById('deployHint').classList.remove('hidden');
-        }
-
         async function extractLinks() {
             const urlInput = document.getElementById('movieUrl');
             const url = urlInput.value.trim();
-            const resultsDiv = document.getElementById('results');
-            const loadingDiv = document.getElementById('loading');
-            const errorMsg = document.getElementById('errorMsg');
-            const linkContainer = document.getElementById('linkContainer');
-            const debugSteps = document.getElementById('debugSteps');
             const btnText = document.getElementById('btnText');
-            const btnLoading = document.getElementById('btnLoading');
+            const btnLoader = document.getElementById('btnLoader');
+            const errorArea = document.getElementById('errorArea');
+            const resultView = document.getElementById('resultView');
+            const linkGrid = document.getElementById('linkGrid');
             const searchBtn = document.getElementById('searchBtn');
 
-            if (!url) {
-                showError("ကျေးဇူးပြု၍ Link အရင်ထည့်ပါ။");
-                return;
-            }
+            if (!url) return alert("ကျေးဇူးပြု၍ Link ထည့်ပါ");
 
-            if (!url.includes('homietv.com')) {
-                showError("မှန်ကန်သော HomieTV Link ဖြစ်ရပါမည်။");
-                return;
-            }
-
-            // UI State Reset
-            errorMsg.classList.add('hidden');
-            debugSteps.classList.add('hidden');
-            resultsDiv.classList.add('hidden');
-            loadingDiv.classList.remove('hidden');
+            // UI Reset
+            errorArea.classList.add('hidden');
+            resultView.classList.add('hidden');
             btnText.classList.add('hidden');
-            btnLoading.classList.remove('hidden');
+            btnLoader.classList.remove('hidden');
             searchBtn.disabled = true;
-            linkContainer.innerHTML = '';
 
             try {
-                // Fetch from Vercel API
-                const apiUrl = `/api/extract?url=${encodeURIComponent(url)}`;
-                const response = await fetch(apiUrl);
-                
-                if (!response.ok) {
-                    throw new Error(`Server မှ အချက်အလက်မပေးနိုင်ပါ: ${response.status} (${response.statusText})`);
-                }
-
+                // Vercel Serverless Function ကို လှမ်းခေါ်ခြင်း
+                const response = await fetch(`/api/extract?url=${encodeURIComponent(url)}`);
                 const data = await response.json();
 
-                if (data.error) throw new Error(data.error);
+                if (!response.ok || data.error) throw new Error(data.error || "ဒေတာရယူရာတွင် အမှားအယွင်းရှိပါသည်");
 
                 document.getElementById('movieTitle').innerText = data.title;
+                linkGrid.innerHTML = '';
 
                 if (data.links && data.links.length > 0) {
                     data.links.forEach(link => {
-                        const card = `
-                            <div class="flex items-center justify-between p-4 bg-gray-50 hover:bg-blue-50 border border-gray-100 rounded-2xl transition-all shadow-sm group">
-                                <div class="flex items-center">
-                                    <div class="bg-white p-3 rounded-xl shadow-sm mr-4 text-blue-600 group-hover:scale-110 transition-transform">
-                                        <i class="fas fa-download"></i>
-                                    </div>
-                                    <div class="overflow-hidden">
-                                        <p class="font-bold text-gray-800 text-sm truncate max-w-[140px] md:max-w-[280px]" title="${link.label}">${link.label}</p>
-                                        <span class="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded font-bold uppercase tracking-tighter">${link.provider}</span>
-                                    </div>
+                        linkGrid.innerHTML += `
+                            <div class="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-blue-50 transition-colors">
+                                <div>
+                                    <p class="font-bold text-sm text-slate-800">${link.label}</p>
+                                    <span class="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded font-black uppercase tracking-tighter">${link.provider}</span>
                                 </div>
-                                <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="p-3 bg-white text-blue-600 rounded-full shadow-sm hover:bg-blue-600 hover:text-white transition-all border border-blue-50 ml-2">
-                                    <i class="fas fa-external-link-alt"></i>
+                                <a href="${link.url}" target="_blank" rel="noopener noreferrer" 
+                                   class="w-10 h-10 bg-white border border-blue-100 text-blue-600 rounded-full flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                                    <i class="fas fa-external-link-alt text-xs"></i>
                                 </a>
-                            </div>
-                        `;
-                        linkContainer.innerHTML += card;
+                            </div>`;
                     });
                 } else {
-                    linkContainer.innerHTML = '<div class="text-center py-10"><i class="fas fa-search-minus text-gray-200 text-4xl mb-2"></i><p class="text-gray-400 italic">Download Link များ ရှာမတွေ့ပါ။</p></div>';
+                    linkGrid.innerHTML = '<p class="text-center py-8 text-slate-400 italic">Download Link များ ရှာမတွေ့ပါ။</p>';
                 }
-
-                loadingDiv.classList.add('hidden');
-                resultsDiv.classList.remove('hidden');
-
+                resultView.classList.remove('hidden');
             } catch (err) {
-                loadingDiv.classList.add('hidden');
-                debugSteps.classList.remove('hidden');
-                showError(err.message);
+                errorArea.classList.remove('hidden');
+                document.getElementById('errorText').innerText = err.message;
             } finally {
                 btnText.classList.remove('hidden');
-                btnLoading.classList.add('hidden');
+                btnLoader.classList.add('hidden');
                 searchBtn.disabled = false;
             }
-        }
-
-        function showError(msg) {
-            const errorMsg = document.getElementById('errorMsg');
-            document.getElementById('errorText').innerText = msg;
-            errorMsg.classList.remove('hidden');
         }
     </script>
 </body>
