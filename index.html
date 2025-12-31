@@ -45,11 +45,19 @@
                     <i class="fas fa-magic mr-2"></i> Link ရှာမည်
                 </button>
             </div>
+            
+            <!-- Improved Error Messaging -->
             <div id="errorMsg" class="mt-4 p-4 bg-red-50 border border-red-100 rounded-2xl hidden flex items-start">
                 <i class="fas fa-exclamation-triangle text-red-500 mt-1 mr-3"></i>
                 <div>
-                    <p class="text-red-600 font-bold text-sm">Error ဖြစ်ပေါ်ခဲ့ပါသည်</p>
+                    <p class="text-red-600 font-bold text-sm">တစ်ခုခုမှားယွင်းနေပါသည်</p>
                     <p id="errorText" class="text-red-500 text-xs mt-1"></p>
+                    <div id="debugSteps" class="mt-2 text-[10px] text-red-400 font-mono hidden">
+                        <p>စစ်ဆေးရန် -</p>
+                        <p>1. Vercel မှာ Deploy လုပ်ပြီးပြီလား?</p>
+                        <p>2. api/extract.js ဖိုင် Folder ထဲမှာ ရှိလား?</p>
+                        <p>3. vercel.json ဖိုင် ထည့်ထားလား?</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -81,15 +89,10 @@
             </div>
         </div>
 
-        <!-- Instructions for Deployment -->
+        <!-- Instructions for Local Files -->
         <div id="deployHint" class="mt-8 p-6 bg-yellow-50 border border-yellow-100 rounded-3xl text-sm text-yellow-800 hidden">
             <p class="font-bold mb-2"><i class="fas fa-info-circle mr-2"></i> အရေးကြီးအချက်အလက်</p>
-            <p>သင်သည် ဤဖိုင်ကို Computer ပေါ်တွင် တိုက်ရိုက်ဖွင့်ထားပုံရသည်။ ဤ App သည် Vercel သို့မဟုတ် Server ပေါ်တွင် တင်ထားမှသာ အလုပ်လုပ်မည်ဖြစ်သည်။</p>
-            <p class="mt-2 font-bold underline">Vercel တွင် တင်ရန်နည်းလမ်း -</p>
-            <ol class="list-decimal ml-5 mt-1 space-y-1">
-                <li><code>api/extract.js</code> ကို Folder ထဲသို့ ထည့်ပါ။</li>
-                <li>Vercel သို့ Deploy လုပ်ပါ။</li>
-            </ol>
+            <p>သင်သည် ဤဖိုင်ကို Browser တွင် တိုက်ရိုက် (file://) ဖွင့်ထားပုံရသည်။ ဤ App သည် Vercel ကဲ့သို့သော Server ပေါ်တွင် တင်ထားမှသာ အလုပ်လုပ်မည်ဖြစ်သည်။</p>
         </div>
     </div>
 
@@ -106,6 +109,7 @@
             const loadingDiv = document.getElementById('loading');
             const errorMsg = document.getElementById('errorMsg');
             const linkContainer = document.getElementById('linkContainer');
+            const debugSteps = document.getElementById('debugSteps');
 
             if (!url) {
                 showError("ကျေးဇူးပြု၍ Link အရင်ထည့်ပါ။");
@@ -113,12 +117,13 @@
             }
 
             if (!url.includes('homietv.com')) {
-                showError("မှန်ကန်သော HomieTV Link ကို ထည့်သွင်းပေးပါ။");
+                showError("မှန်ကန်သော HomieTV Link ဖြစ်ရပါမည်။");
                 return;
             }
 
             // UI Reset
             errorMsg.classList.add('hidden');
+            debugSteps.classList.add('hidden');
             resultsDiv.classList.add('hidden');
             loadingDiv.classList.remove('hidden');
             linkContainer.innerHTML = '';
@@ -129,8 +134,7 @@
                 const response = await fetch(apiUrl);
                 
                 if (!response.ok) {
-                    const errorText = `Server မှ ပြန်လာသော Error: ${response.status} ${response.statusText}`;
-                    throw new Error(errorText);
+                    throw new Error(`Server Error: ${response.status} (${response.statusText})`);
                 }
 
                 const data = await response.json();
@@ -148,8 +152,8 @@
                                         <i class="fas fa-download"></i>
                                     </div>
                                     <div class="overflow-hidden">
-                                        <p class="font-bold text-gray-800 text-sm truncate max-w-[150px] md:max-w-full" title="${link.label}">${link.label}</p>
-                                        <span class="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded font-bold uppercase">${link.provider}</span>
+                                        <p class="font-bold text-gray-800 text-sm truncate max-w-[150px] md:max-w-[300px]" title="${link.label}">${link.label}</p>
+                                        <span class="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded font-bold uppercase tracking-tighter">${link.provider}</span>
                                     </div>
                                 </div>
                                 <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="p-3 bg-white text-blue-600 rounded-full shadow-sm hover:bg-blue-600 hover:text-white transition-all border border-blue-50 ml-2">
@@ -160,7 +164,7 @@
                         linkContainer.innerHTML += card;
                     });
                 } else {
-                    linkContainer.innerHTML = '<div class="text-center py-10"><i class="fas fa-search text-gray-200 text-4xl mb-2"></i><p class="text-gray-400 italic font-bold">Download Link များ ရှာမတွေ့ပါ။</p></div>';
+                    linkContainer.innerHTML = '<div class="text-center py-10"><p class="text-gray-400 italic">Link များ ရှာမတွေ့ပါ။</p></div>';
                 }
 
                 loadingDiv.classList.add('hidden');
@@ -168,8 +172,8 @@
 
             } catch (err) {
                 loadingDiv.classList.add('hidden');
-                console.error(err);
-                showError(err.message || "Link ဆွဲထုတ်ရာတွင် အမှားအယွင်းရှိနေပါသည်။");
+                debugSteps.classList.remove('hidden');
+                showError(err.message);
             }
         }
 
