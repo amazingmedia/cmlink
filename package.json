@@ -1,13 +1,10 @@
 {
-  "name": "safe-cinema-scraper",
+  "name": "safe-cinema-app",
   "version": "1.0.0",
-  "description": "Safe movie link extractor for kids",
+  "description": "Safe movie link extractor for children",
   "main": "api/extract.js",
   "dependencies": {
     "axios": "^1.6.0",
     "cheerio": "^1.0.0-rc.12"
-  },
-  "scripts": {
-    "start": "vercel dev"
   }
 }
